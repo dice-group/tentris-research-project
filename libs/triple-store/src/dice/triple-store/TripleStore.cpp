@@ -7,8 +7,12 @@
 namespace dice::triple_store {
 	TripleStore::TripleStore(TripleStore::BoolHypertrie &hypertrie) : hypertrie_(hypertrie) {}
 
+	TripleStore::~TripleStore() {
+		WriterLock writer_lock{mutex_};
+	}
+
 	void TripleStore::load_ttl(std::string const &file_path, uint32_t bulk_size,
-							   rdf_tensor::HypertrieBulkInserter::BulkInserted_callback const &call_back,
+							   rdf_tensor::HypertrieBulkInserter::BulkProcessed_callback const &call_back,
 							   std::function<void(rdf_tensor::parser::ParsingError const &)> const &error_callback) {
 		std::ifstream ifs{file_path};
 
@@ -16,6 +20,7 @@ namespace dice::triple_store {
 			throw std::runtime_error{"unable to open provided file " + file_path};
 		}
 
+		WriterLock writer_lock{mutex_};
 		HypertrieBulkInserter bulk_inserter{hypertrie_, bulk_size, call_back};
 		for (rdf4cpp::rdf::parser::IStreamQuadIterator qit{ifs}; qit != std::default_sentinel; ++qit) {
 			if (qit->has_value()) {
@@ -28,7 +33,28 @@ namespace dice::triple_store {
 		}
 	}
 
+	void TripleStore::remove(std::vector<rdf_tensor::NonZeroEntry> const &entries,
+							 [[maybe_unused]] WriterLock const &writer_lock, uint32_t const bulk_size) {
+		HypertrieBulkRemover bulk_remover{hypertrie_, bulk_size};
+
+		for (auto const &e : entries) {
+			bulk_remover.add(e);
+		}
+	}
+
+	void TripleStore::insert(std::vector<rdf_tensor::NonZeroEntry> const &entries,
+							 [[maybe_unused]] WriterLock const &writer_lock, uint32_t const bulk_size) {
+		assert(writer_lock.owns_lock());
+		HypertrieBulkInserter bulk_inserter{hypertrie_, bulk_size};
+
+		for (auto const &e : entries) {
+			bulk_inserter.add(e);
+		}
+	}
+
 	bool TripleStore::is_rdf_list(rdf4cpp::rdf::Node list) const noexcept {
+		ReaderLock reader_lock{mutex_};
+
 		using IRI = rdf4cpp::rdf::IRI;
 		IRI rdf_nil("http://www.w3.org/1999/02/22-rdf-syntax-ns#nil");
 
@@ -52,6 +78,7 @@ namespace dice::triple_store {
 		return true;
 	}
 	std::vector<rdf4cpp::rdf::Node> TripleStore::get_rdf_list(rdf4cpp::rdf::Node list) const {
+		ReaderLock reader_lock{mutex_};
 		using IRI = rdf4cpp::rdf::IRI;
 		using Node = rdf4cpp::rdf::Node;
 
@@ -87,9 +114,11 @@ namespace dice::triple_store {
 	 * @param slice_keys The slice keys corresponding to the query being evaluated
 	 * @return A vector of tensor operands (const_BoolHypertries).
 	 */
-	std::vector<rdf_tensor::const_BoolHypertrie> generate_operands(rdf_tensor::BoolHypertrie rdf_tensor, std::vector<rdf_tensor::SliceKey> const &slice_keys) {
+	std::vector<rdf_tensor::const_BoolHypertrie> generate_operands(rdf_tensor::BoolHypertrie rdf_tensor, std::vector<rdf_tensor::SliceKey> const &slice_keys, [[maybe_unused]] TripleStore::ReaderLock const &reader_lock) {
 		using const_BoolHypertrie = rdf_tensor::const_BoolHypertrie;
 		using BoolHypertrie = rdf_tensor::BoolHypertrie;
+
+		assert(reader_lock.owns_lock());
 
 		std::vector<const_BoolHypertrie> operands;
 		for (auto const &slice_key : slice_keys) {
@@ -109,7 +138,8 @@ namespace dice::triple_store {
 	}
 
 	std::generator<rdf_tensor::Entry const &> TripleStore::eval_select(const sparql2tensor::SPARQLQuery &query, std::chrono::steady_clock::time_point endtime) const {
-		auto operands = generate_operands(hypertrie_, query.get_slice_keys());
+		ReaderLock reader_lock{mutex_};
+		auto operands = generate_operands(hypertrie_, query.get_slice_keys(), reader_lock);
 		std::vector<char> proj_vars_id{};
 		for (auto const &proj_var : query.projected_variables_) {
 			proj_vars_id.push_back(query.var_to_id_.at(proj_var));
@@ -129,26 +159,27 @@ namespace dice::triple_store {
 		}
 	}
 	bool TripleStore::eval_ask(const sparql2tensor::SPARQLQuery &query, std::chrono::steady_clock::time_point endtime) const {
-		auto operands = generate_operands(hypertrie_, query.get_slice_keys());
+		ReaderLock reader_lock{mutex_};
+		auto operands = generate_operands(hypertrie_, query.get_slice_keys(), reader_lock);
 		rdf_tensor::Query q{query.odg_, operands, {}, endtime};
 		return dice::query::Evaluation::evaluate_ask<htt_t, allocator_type>(q);
 	}
 	size_t TripleStore::count(const sparql2tensor::SPARQLQuery &query, std::chrono::steady_clock::time_point endtime) const {
+		ReaderLock reader_lock{mutex_};
 		using namespace sparql2tensor;
 		if (query.triple_patterns_.size() == 1) {// O(1)
 			auto slice_key = query.get_slice_keys()[0];
 			if (slice_key.get_fixed_depth() == 3)
 				return static_cast<size_t>(std::get<bool>(get_hypertrie()[slice_key]));
-			else
-				return std::get<const_BoolHypertrie>(get_hypertrie()[slice_key]).size();
-		} else {
-			size_t count = 0;
-			for (auto const &entry : this->eval_select(query, endtime))
-				count += entry.value();
-			return count;
+			return std::get<const_BoolHypertrie>(get_hypertrie()[slice_key]).size();
 		}
+		size_t count = 0;
+		for (auto const &entry : this->eval_select(query, endtime))
+			count += entry.value();
+		return count;
 	}
 	bool TripleStore::contains(const rdf4cpp::rdf::Statement &statement) const {
+		ReaderLock reader_lock{mutex_};
 		return hypertrie_[Key{statement.subject(), statement.predicate(), statement.object()}];
 	}
 	size_t TripleStore::size() const {

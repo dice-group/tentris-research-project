@@ -2,8 +2,8 @@
 
 namespace dice::sparql2tensor::parser::visitors {
 
-    PrologueVisitor::PrologueVisitor(rdf4cpp::rdf::IRIFactory &prefixes) noexcept : prefixes_{&prefixes} {
-    }
+	PrologueVisitor::PrologueVisitor(rdf4cpp::rdf::IRIFactory &prefixes) noexcept : prefixes_{&prefixes} {
+	}
 
 	std::any PrologueVisitor::visitPrologue(SparqlParser::PrologueContext *ctx) {
 		for (auto pref_ctx : ctx->prefixDecl())

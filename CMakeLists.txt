@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.24)
-project(tentris VERSION 1.4.0
+project(tentris VERSION 1.5.0
         DESCRIPTION "Tentris - A tensor-based Triplestore.")
 
 include(cmake/boilerplate_init.cmake)

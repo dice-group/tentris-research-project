@@ -5,14 +5,14 @@
 
 namespace dice::endpoint {
 
-    class SPARQLStreamingEndpoint final : public Endpoint {
+	class SPARQLStreamingEndpoint final : public Endpoint {
 
-    public:
-        SPARQLStreamingEndpoint(tf::Executor &executor, triple_store::TripleStore &triplestore, SparqlQueryCache &sparql_query_cache, EndpointCfg const &endpoint_cfg);
+	public:
+		SPARQLStreamingEndpoint(tf::Executor &executor, triple_store::TripleStore &triplestore, SparqlQueryCache &sparql_query_cache, EndpointCfg const &endpoint_cfg);
 
-    protected:
-        void handle_query(restinio::request_handle_t req, std::chrono::steady_clock::time_point timeout) override;
-    };
+	protected:
+		void handle_query(restinio::request_handle_t req, std::chrono::steady_clock::time_point timeout) override;
+	};
 }// namespace dice::endpoint
 
 #endif//TENTRIS_SPARQLSTREAMINGENDPOINT_HPP

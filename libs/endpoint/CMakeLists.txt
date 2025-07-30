@@ -13,17 +13,17 @@ add_library(${lib}
         src/dice/endpoint/SparqlEndpoint.cpp
         src/dice/endpoint/CountEndpoint.cpp
         src/dice/endpoint/SparqlStreamingEndpoint.cpp
+        src/dice/endpoint/SparqlUpdateEndpoint.cpp
         src/dice/endpoint/SparqlQueryCache.cpp
         src/dice/endpoint/Endpoint.cpp
         )
 add_library(${PROJECT_NAME}::${lib_suffix} ALIAS ${lib})
 
-target_include_directories(${lib}
-        PUBLIC
+target_include_directories(${lib} PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
         PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/private-include
-        )
+)
 
 target_link_libraries(${lib} PUBLIC
         ${PROJECT_NAME}::triple-store
@@ -34,7 +34,7 @@ target_link_libraries(${lib} PUBLIC
         spdlog::spdlog
         cppitertools::cppitertools
         rapidjson
-        )
+)
 
 include(${CMAKE_SOURCE_DIR}/cmake/install_components.cmake)
 install_component(PUBLIC ${lib_suffix} src)

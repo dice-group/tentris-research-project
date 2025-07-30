@@ -1,10 +1,6 @@
 #ifndef TENTRIS_PERSISTENTNODESTORAGEBACKENDIMPL_HPP
 #define TENTRIS_PERSISTENTNODESTORAGEBACKENDIMPL_HPP
 
-#include <boost/container/vector.hpp>
-#include <shared_mutex>
-
-#include <dice/hash/DiceHash.hpp>
 #include <rdf4cpp/rdf/storage/node/INodeStorageBackend.hpp>
 
 #include "dice/node-store/MetallBNodeBackend.hpp"
