@@ -16,7 +16,7 @@ This is the research version of Tentris. A commercial version is available at ht
 
 ## Download
 
-We provide pre-built binaries in the releases that run on Linux machines with fairly recent (after 2015) x86_64 CPUs.
+We provide pre-built binaries in the [releases](https://github.com/dice-group/tentris-research-project/releases) that run on Linux machines with fairly recent (after 2015) x86_64 CPUs.
 
 ## Running
 
