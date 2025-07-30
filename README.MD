@@ -1,47 +1,47 @@
-# Tᴇɴᴛʀɪs: A Tensor-based Triple Store
+# Tentris: A Tensor-based Triple Store
 
-<p><img src = "https://tentris.dice-research.org/iswc2020/assets/img/Tentris_logo.svg" alt = "Tᴇɴᴛʀɪs Logo" width = "30%" align = "center"></p>
+Tentris is a tensor-based triplestore that natively supports worst-case optimal joins.
 
-Tᴇɴᴛʀɪs is a tensor-based RDF triple store with SPARQL support. It is introduced and described in:
-> [Alexander Bigerl, Felix Conrads, Charlotte Behning, Mohamed Ahmed Sherif, Muhammad Saleem and Axel-Cyrille Ngonga Ngomo (2020)
-**Tentris – A Tensor-Based Triple Store.
-** In: The Semantic Web – ISWC 2020](https://tentris.dice-research.org/iswc2020/)
+This is the research version of Tentris. A commercial version is available at https://github.com/tentris/tentris.
 
-and
+## Features
 
-> [Alexander Bigerl, Lixi Conrads, Charlotte Behning, Muhammad Saleem and Axel-Cyrille Ngonga Ngomo (2022) Hashing the Hypertrie: Space- and Time-Efficient Indexing for SPARQL in Tensors. In: The Semantic Web – ISWC 2022 Hashing the Hypertrie: Space- and Time-Efficient Indexing for SPARQL in Tensors](https://tentris.dice-research.org/iswc2022/)
+- SPARQL endpoint supporting `SELECT`, `SELECT DISTINCT` and `ASK` queries at `/sparql` and `/stream`. The `WHERE` block
+  may contain basic graph patterns and OPTIONAL clauses.
+  Queries must be well-designed.[^1]
+- Supports `INSERT DATA`/`DELETE DATA` updates that are synchronized with a reader-writer lock at `/update`.
+- Supports streaming results through the `/stream` endpoint for large results.
+- Tentris is a persistent triplestore that uses [metall](https://github.com/LLNL/metall) to manage its disk-based index.
+  Note that previous versions were in-memory.
 
-## Get It
+[^1] Kaminski, M., Kostylev, E.V. Complexity and Expressive Power of Weakly Well-Designed SPARQL. Theory Comput Syst 62,
+772–809 (2018). https://doi.org/10.1007/s00224-017-9802-9
 
-* download [static prebuilt binaries](https://github.com/dice-group/tentris/releases)
-  and [try them out](#running-tentris)
-* [build it with docker](#docker)
+## Download
 
-## Running Tᴇɴᴛʀɪs
+We provide pre-built binaries in the releases that run on Linux machines with fairly recent (after 2015) x86_64 CPUs.
 
-<details><summary> </summary>
+## Running Tentris
 
-#### Bulk-load Data
+Initialize Tentris' index with an empty graph with:
 
-Provide an NTRIPLE or TURTLE file to build the an index. By default, the index is stored in the current directory. The
-path can be changed with the option `--storage`.
+```shell
+./tentris_loader -f <(echo "")
+```
+
+Or initialize it by loading a turtle or ttl file:
 
 ```shell
 tentris_loader --file my_nt_file.nt
 ```
 
-#### Start HTTP endpoint
-
-To start Tᴇɴᴛʀɪs as a HTTP endpoint on port 9080 run now:
+Start the Tentris endpoint at [127.0.0.1:9080/sparql](127.0.0.1:9080/sparql):
 
 ```
 tentris_server -p 9080
 ``` 
 
-#### Query
-
-The SPARQL endpoint may now be queried locally at: `127.0.0.1:9080/sparql?query=*your query*`. You can execute queries
-with the following curl command:
+Run a query with :
 
 ```shell
 curl -G \
@@ -49,17 +49,21 @@ curl -G \
 '127.0.0.1:9080/sparql'
 ```
 
-If you want to type the query in your browser, the query string must be URL encoded. You can use any online URL encoder
-like <https://meyerweb.com/eric/tools/dencoder>.
+Or update your data with:
+
+```shell
+
+curl -X POST \
+-H 'Content-Type: application/sparql-update' \
+--data 'INSERT DATA { <http://example.org/subject> <http://example.org/predicate> "object" . }' \
+'127.0.0.1:9080/sparql'
+```
 
 The following endpoints are available:
-Available endpoints:
 
-- HTTP GET `/sparql?query=` for normal queries
-- HTTP GET `/stream?query=` for queries with huge results
-- HTTP GET `/count?query=` as a workaround for count (consumes a select query)
-
-</details>
+- HTTP GET `/sparql` for normal SPARQL queries
+- HTTP GET `/stream` for SPARQL queries with huge results
+- HTTP POST `/update` for `INSERT DATA` and `DELETE DATA` updates
 
 ## Docker
 
@@ -75,12 +79,30 @@ Use the [Dockerfile](./Dockerfile) to build tentris.
 
 </details>
 
-## Build It Yourself
+## Build It
 
 <details><summary> </summary>
 
-Tᴇɴᴛʀɪs is known to build on Ubuntu 22.04 and newer.
+Tentris is known to build on Ubuntu 22.04 and newer.
 Building was tested with Clang 17 & 19. As standard library, only libstdc++11 (v13) was tested. For details
 refer to the [Dockerfile](./Dockerfile) or github actions.
 
 </details>
+
+# Research
+
+- Alexander Bigerl, Liss Heidrich, Nikolaos Karalis and Axel-Cyrille Ngonga Ngomo (2025) **Hashing the
+  Hypertrie: Space- and Time-Efficient Indexing for SPARQL in Tensors.** In: The Semantic Web – ISWC
+  2025 | [website](https://github.com/dice-group/tentris-wcoj-with-updates/)
+
+- Alexander Bigerl, Lixi Conrads, Charlotte Behning, Muhammad Saleem and Axel-Cyrille Ngonga Ngomo (2022) **Hashing the
+  Hypertrie: Space- and Time-Efficient Indexing for SPARQL in Tensors.** In: The Semantic Web – ISWC
+  2022 | [website](https://tentris.dice-research.org/iswc2022/)
+
+- Alexander Bigerl, Felix Conrads, Charlotte Behning, Mohamed Ahmed Sherif, Muhammad Saleem and Axel-Cyrille Ngonga
+  Ngomo (2020)
+  **Tentris – A Tensor-Based Triple Store.**
+  In: The Semantic Web – ISWC 2020 | [website](https://tentris.dice-research.org/iswc2020/)
+
+
+

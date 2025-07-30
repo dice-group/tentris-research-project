@@ -20,14 +20,14 @@ add_library(${lib}
         )
 add_library(${PROJECT_NAME}::${lib_suffix} ALIAS ${lib})
 
+target_include_directories(${lib} PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+)
+
 target_link_libraries(${lib} PUBLIC
         ${PROJECT_NAME}::rdf-tensor
         rdf4cpp::rdf4cpp
-        )
-
-target_include_directories(${lib} PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
-        )
+)
 
 include(${CMAKE_SOURCE_DIR}/cmake/install_components.cmake)
 install_component(PUBLIC ${lib_suffix} src)

@@ -247,12 +247,13 @@ namespace dice::sparql2tensor::parser::visitors {
 		}
 		std::string predicate = ctx->prefixedName()->PNAME_LN()->getText();
 		std::size_t split = predicate.find(':');
+
 		auto maybe_iri = query->prefixes_.from_prefix(predicate.substr(0, split), predicate.substr(split + 1));
-	    if (maybe_iri.has_value()) {
-	        return *maybe_iri;
-	    } else {
-	        throw std::runtime_error("Invalid prefixed IRI");
-	    }
+		if (maybe_iri.has_value()) {
+			return *maybe_iri;
+		} else {
+			throw std::runtime_error("Invalid prefixed IRI");
+		}
 	}
 
 	std::any SelectAskQueryVisitor::visitBlankNode(SparqlParser::BlankNodeContext *ctx) {

@@ -3,11 +3,11 @@ namespace dice::node_store {
 
 	PersistentNodeStorageBackend::PersistentNodeStorageBackend(PersistentNodeStorageBackendImpl *impl)
 		: INodeStorageBackend(), impl_(impl) {}
-    size_t PersistentNodeStorageBackend::size() const noexcept {
-	    return impl_->size();
+	size_t PersistentNodeStorageBackend::size() const noexcept {
+		return impl_->size();
 	}
-    bool PersistentNodeStorageBackend::has_specialized_storage_for(rdf4cpp::rdf::storage::node::identifier::LiteralType datatype) const noexcept {
-	    return impl_->has_specialized_storage_for(datatype);
+	bool PersistentNodeStorageBackend::has_specialized_storage_for(rdf4cpp::rdf::storage::node::identifier::LiteralType datatype) const noexcept {
+		return impl_->has_specialized_storage_for(datatype);
 	}
 	rdf4cpp::rdf::storage::node::identifier::NodeID PersistentNodeStorageBackend::find_or_make_id(const rdf4cpp::rdf::storage::node::view::BNodeBackendView &view) noexcept {
 		return impl_->find_or_make_id(view);
