@@ -91,8 +91,8 @@ refer to the [Dockerfile](./Dockerfile) or github actions.
 
 # Research
 
-- Alexander Bigerl, Liss Heidrich, Nikolaos Karalis and Axel-Cyrille Ngonga Ngomo (2025) **Hashing the
-  Hypertrie: Space- and Time-Efficient Indexing for SPARQL in Tensors.** In: The Semantic Web – ISWC
+- Alexander Bigerl, Liss Heidrich, Nikolaos Karalis and Axel-Cyrille Ngonga Ngomo (2025) **Efficient Updates for
+  Worst-Case Optimal Join Triple Stores.** In: The Semantic Web – ISWC
   2025 | [website](https://github.com/dice-group/tentris-wcoj-with-updates/)
 
 - Alexander Bigerl, Lixi Conrads, Charlotte Behning, Muhammad Saleem and Axel-Cyrille Ngonga Ngomo (2022) **Hashing the
