@@ -24,7 +24,7 @@ class Recipe(ConanFile):
     generators = "CMakeDeps", "CMakeToolchain"
 
     def requirements(self):
-        self.requires("hypertrie/0.9.6", transitive_headers=True)
+        self.requires("hypertrie/0.10.0", transitive_headers=True)
         self.requires("rdf4cpp/0.0.27.1", transitive_headers=True)
         self.requires("sparql-parser-base/0.3.6")
         self.requires("unordered_dense/4.4.0", transitive_headers=True, force=True)

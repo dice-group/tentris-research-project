@@ -11,10 +11,14 @@
 #endif
 #include <metall/metall.hpp>
 
+#include <shared_mutex>
+
 namespace dice::triple_store {
 	class TripleStore {
 		using HypertrieContext = rdf_tensor::HypertrieContext;
 		using HypertrieContext_ptr = rdf_tensor::HypertrieContext_ptr;
+		using HypertrieSyncBulkInserter = rdf_tensor::HypertrieSyncBulkInserter;
+		using HypertrieSyncBulkRemvoer = rdf_tensor::HypertrieSyncBulkRemover;
 		using BoolHypertrie = rdf_tensor::BoolHypertrie;
 		using const_BoolHypertrie = rdf_tensor::const_BoolHypertrie;
 		using Key = rdf_tensor::Key;
@@ -22,16 +26,31 @@ namespace dice::triple_store {
 
 	public:
 		using HypertrieBulkInserter = rdf_tensor::HypertrieBulkInserter;
+		using HypertrieBulkRemover = rdf_tensor::HypertrieBulkRemover;
 		using allocator_type = rdf_tensor::allocator_type;
 
 	private:
 		BoolHypertrie &hypertrie_;
+		mutable std::shared_mutex mutex_;
 
 	public:
+		using ReaderLock = std::shared_lock<std::shared_mutex>;
+		using WriterLock = std::unique_lock<std::shared_mutex>;
+
 		explicit TripleStore(BoolHypertrie &hypertrie);
+
+		~TripleStore();
 
 		[[nodiscard]] BoolHypertrie const &get_hypertrie() const {
 			return hypertrie_;
+		}
+
+		ReaderLock acquire_reader_lock() const {
+			return ReaderLock{mutex_};
+		}
+
+		WriterLock acquire_writer_lock() const {
+			return WriterLock{mutex_};
 		}
 
 		/**
@@ -63,8 +82,26 @@ namespace dice::triple_store {
 		void load_ttl(
 				std::string const &file_path,
 				uint32_t bulk_size = 1'000'000,
-				HypertrieBulkInserter::BulkInserted_callback const &call_back = [](size_t, size_t, size_t) -> void {},
+				HypertrieBulkInserter::BulkProcessed_callback const &call_back = [](size_t, size_t, size_t) -> void {},
 				std::function<void(rdf_tensor::parser::ParsingError const &)> const &error_callback = [](rdf_tensor::parser::ParsingError const &) -> void {});
+
+		/**
+		 * @brief Removes the given set of entries from the triplestore
+		 * @note function blocks other readers and writers
+		 * @param entries the set of entries to be removed from the triplestore.
+		 * @param writer_lock a lock ensuring that write operations on the triple store are atomic and thread-safe.
+		 * @param bulk_size defines how many entries should be removed at once. Default value is 1'000'000.
+		 */
+		void remove(std::vector<rdf_tensor::NonZeroEntry> const &entries, WriterLock const &writer_lock, uint32_t bulk_size = 1'000'000);
+
+		/**
+		 * @brief Inserts the given set of entries to the triplestore
+		 * @note function blocks other readers and writers
+		 * @param entries the set of entries to be inserted into the triplestore.
+		 * @param writer_lock a lock ensuring that write operations on the triple store are atomic and thread-safe.
+		 * @param bulk_size defines how many entries should be inserted at once. Default value is 1'000'000.
+		 */
+		void insert(std::vector<rdf_tensor::NonZeroEntry> const &entries, WriterLock const &writer_lock, uint32_t bulk_size = 1'000'000);
 
 		/**
 		 * @brief Evaluation of SPARQL SELECT queries.

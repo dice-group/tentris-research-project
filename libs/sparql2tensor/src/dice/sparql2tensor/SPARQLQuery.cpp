@@ -24,7 +24,7 @@ namespace dice::sparql2tensor {
 		SPARQLQuery p_sparql{};
 		if (q_ctx->prologue()) {
 			parser::visitors::PrologueVisitor p_visitor{p_sparql.prefixes_};
-		    p_visitor.visitPrologue(q_ctx->prologue());
+			p_visitor.visitPrologue(q_ctx->prologue());
 		}
 
 		parser::visitors::SelectAskQueryVisitor visitor{&p_sparql};

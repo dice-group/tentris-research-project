@@ -12,6 +12,11 @@ find_package(dice-hash REQUIRED)
 # Define the library
 add_library(${lib} INTERFACE)
 add_library(${PROJECT_NAME}::${lib_suffix} ALIAS ${lib})
+
+
+target_include_directories(${lib} INTERFACE
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>)
+
 target_link_libraries(${lib} INTERFACE
         rdf4cpp::rdf4cpp
         hypertrie::hypertrie
@@ -19,8 +24,9 @@ target_link_libraries(${lib} INTERFACE
         Metall::Metall
         Boost::headers
         dice-hash::dice-hash
-        )
+)
 
+# TODO: why is this here???
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/version.hpp.in ${CMAKE_CURRENT_SOURCE_DIR}/src/dice/tentris/tentris_version.hpp)
 target_include_directories(${lib} INTERFACE
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>

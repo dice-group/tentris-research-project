@@ -3,6 +3,7 @@
 #include <dice/endpoint/CountEndpoint.hpp>
 #include <dice/endpoint/SparqlEndpoint.hpp>
 #include <dice/endpoint/SparqlStreamingEndpoint.hpp>
+#include <dice/endpoint/SparqlUpdateEndpoint.hpp>
 
 #include <csignal>
 #include <cstring>
@@ -57,6 +58,10 @@ namespace dice::endpoint {
 		router_->http_get(R"(/sparql)",
 						  SPARQLEndpoint{executor_, triplestore_, sparql_query_cache_, cfg_});
 		spdlog::info("  GET /sparql?query= for normal queries");
+
+		router_->http_post(R"(/sparql)",
+						   SPARQLUpdateEndpoint{executor_, triplestore_, sparql_query_cache_, cfg_});
+		spdlog::info("  POST  /sparql for update queries");
 
 		router_->http_get(R"(/stream)",
 						  SPARQLStreamingEndpoint{executor_, triplestore_, sparql_query_cache_, cfg_});
