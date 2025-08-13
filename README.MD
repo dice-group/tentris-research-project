@@ -2,7 +2,7 @@
 
 Tentris is a tensor-based triplestore that natively supports worst-case optimal joins.
 
-This is the research version of Tentris. A commercial version is available at https://github.com/tentris/tentris.
+> **⚠️ Note:** This is **not** the commercial version of Tentris, but a research prototype that focuses on aspects presented in papers. For a reliable, SPARQL feature-complete, and well-tested edition, see the commercial edition at https://github.com/tentris/tentris.
 
 ## Features
 
